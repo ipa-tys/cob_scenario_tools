@@ -28,8 +28,12 @@ class Edge(QGraphicsItem):
         
     def paint(self, painter, option, widget):
         print "ho"
+        print "draw"
+        print self
         line = QLineF(self.mapFromItem(self.source, 0,0),
                       self.mapFromItem(self.dest, 0,0))
+        painter.setBrush(Qt.darkGray)
+        painter.setPen(QPen(Qt.black, 2))
         painter.drawLine(line)
     
   
@@ -37,7 +41,7 @@ class Edge(QGraphicsItem):
     def boundingRect(self):
         self.sourcePoint = self.mapFromItem(self.source,0,0)
         self.destPoint = self.mapFromItem(self.dest,0,0)
-        return QRectF(-200,-200,800,800)
+        return QRectF(-200,-200,1400,1400)
         # return QRectF(self.sourcePoint, QSizeF(self.destPoint.x() - self.sourcePoint.x(),
         #                                   self.destPoint.y() - self.sourcePoint.y())).normalized().adjusted(-25,-25,25,25)
 
@@ -76,34 +80,21 @@ class Node(QGraphicsItem):
         #if change == QGraphicsItem.ItemPositionChange:
         self.update()
         for edge in self.edgeList:
-            edge.update(-200,-200,500,500)
+            edge.update(-200,-200,1400,1400)
                 
         return super(Node, self).itemChange(change, value) 
     
     def mousePressEvent(self, event):
-        if QApplication.mouseButtons() == Qt.RightButton:
-            if self.graph.fromNode is None:
-                print "yup"
-                self.graph.fromNode = self
-                print self.graph.fromNode
-                print "selfgraph"
-            else:
-                print "yep"
-                edge1 = Edge(self.graph.fromNode, self)
-                self.graph.scene.addItem(edge1)
-                self.edgeList.append(edge1)
-                self.graph.fromNode.edgeList.append(edge1)
-                self.graph.fromNode = None
         self.update()
         for edge in self.edgeList:
-            edge.update(-200,-200,500,500)
+            edge.update(-200,-200,1400,1400)
         #self.setSelected(True)
         #super(Node, self).mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
         self.update()
         for edge in self.edgeList:
-            edge.update(-200,-200,500,500)
+            edge.update(-200,-200,1400,1400)
         super(Node, self).mouseReleaseEvent(event)
 
 
@@ -147,7 +138,22 @@ class GraphWidget(QGraphicsView):
             node.setPos( self.mapToScene(self.mapFromGlobal(QCursor.pos())) )
             print "mouse!"
         if QApplication.mouseButtons() == Qt.RightButton:
-            self.fromNode = None
+            if self.fromNode is None:
+                print "yup"
+                print self.scene.selectedItems()
+                self.fromNode = self.scene.selectedItems()[0]
+            else:
+                print "yep"
+                toNode = self.scene.selectedItems()[0]
+                edge = Edge(self.fromNode, toNode)
+                self.scene.addItem( edge )
+                self.fromNode = None
+                print "All items:"
+                for item in self.scene.items():
+                    print item
+                print "end."
+    
+            
         super(GraphWidget, self).mousePressEvent(event)
 
 app = QApplication(sys.argv)
