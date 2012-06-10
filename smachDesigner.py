@@ -22,6 +22,8 @@ class Edge(QGraphicsItem):
         self.dest = destNode
         self.source.addEdge(self)
         self.dest.addEdge(self)
+        self.setZValue(0)
+        self.setFlag(QGraphicsItem.ItemIsSelectable)
         
     def type(self):
         return Edge.Type
@@ -54,7 +56,7 @@ class Node(QGraphicsItem):
         
         self.graph = graphWidget
         self.edgeList = []
-        #self.setZValue(10)
+        self.setZValue(10)
         self.setFlag(QGraphicsItem.ItemIsMovable)
         self.setFlag(QGraphicsItem.ItemIsSelectable)
         
@@ -138,7 +140,15 @@ class GraphWidget(QGraphicsView):
             node.setPos( self.mapToScene(self.mapFromGlobal(QCursor.pos())) )
             print "mouse!"
         if QApplication.mouseButtons() == Qt.RightButton:
-            if self.fromNode is None:
+            if QApplication.keyboardModifiers() == Qt.ControlModifier:
+                if len(self.scene.selectedItems()) == 1:
+                    delitem = self.scene.selectedItems()[0]
+                    print delitem.__class__.__name__
+                    self.scene.removeItem(delitem)
+                    if delitem.__class__.__name__ == "Node":
+                        for item in delitem.edgeList:
+                            self.scene.removeItem(item)
+            elif self.fromNode is None:
                 print "yup"
                 print self.scene.selectedItems()
                 self.fromNode = self.scene.selectedItems()[0]
@@ -151,10 +161,14 @@ class GraphWidget(QGraphicsView):
                 print "All items:"
                 for item in self.scene.items():
                     print item
-                print "end."
-    
-            
+                print "end."            
         super(GraphWidget, self).mousePressEvent(event)
+        
+    def mouseDoubleClickEvent(self, event):
+        if QApplication.mouseButtons() == Qt.RightButton:
+            print "double right click"
+            
+        super(GraphWidget, self).mouseDoubleClickEvent(event)
 
 app = QApplication(sys.argv)
 widget = GraphWidget()
